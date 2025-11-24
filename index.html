@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controle de Território - Ribeirão Claro (25122)</title>
+    
+    <!-- PWA Meta Tags -->
+    <meta name="description" content="Sistema de controle e gestão de territórios para a congregação de Ribeirão Claro">
+    <meta name="theme-color" content="#1d6f42">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Território RC">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    
+    <!-- Ícones -->
+    <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- SPLASH SCREEN -->
+<div id="splash-screen">
+    <img src="logo.png" class="splash-logo" alt="Logo">
+    <div class="splash-loader"></div>
+</div>
+
+<!-- HEADER (escondido até login) -->
+<header id="main-header" class="hidden">
+    <img src="logo.png" class="header-logo" alt="Logo">
+    <h1>Controle de Território - Ribeirão Claro</h1>
+    
+    <!-- Indicador de sincronização -->
+    <div id="sync-indicator" class="sync-indicator">
+        <span id="sync-status">●</span>
+        <span id="sync-text">Carregando...</span>
+    </div>
+</header>
+
+<!-- APP -->
+<div id="app">
+
+    <!-- TELA DE LOGIN -->
+    <div id="login-screen">
+        <div class="login-card">
+            <h2>🔐 Acesso ao Território</h2>
+            <p class="login-subtitle">Digite seu código de acesso</p>
+            
+            <div class="input-group">
+                <label for="codigo-acesso">Código:</label>
+                <input type="text" id="codigo-acesso" placeholder="Ex: L11" autocomplete="off">
+            </div>
+            
+            <button id="btn-login" class="btn-primary">Entrar</button>
+        </div>
+    </div>
+
+    <!-- TELA DE SELEÇÃO DE TERRITÓRIO -->
+    <div id="selecao-territorio-screen" class="hidden">
+        <div class="selecao-card">
+            <div class="selecao-header">
+                <span class="user-icon">👤</span>
+                <span id="user-name-selecao" class="user-name"></span>
+            </div>
+            <h2>📍 Selecione o Território</h2>
+            <p class="selecao-subtitle">Você possui múltiplos territórios designados</p>
+            <div id="lista-territorios" class="lista-territorios"></div>
+        </div>
+    </div>
+
+    <!-- TELA PRINCIPAL -->
+    <div id="main-screen" class="hidden">
+        
+        <!-- Barra de usuário -->
+        <div class="user-bar">
+            <div class="user-info">
+                <span class="user-icon">👤</span>
+                <span id="user-name" class="user-name">Dirigente</span>
+            </div>
+            
+            <!-- ALTERNADOR DE TERRITÓRIOS (se tiver 2+) -->
+            <div id="territorio-switcher" class="territorio-switcher hidden">
+                <button id="btn-prev-territorio" class="btn-switcher">◀</button>
+                <span id="territorio-atual-nome"></span>
+                <button id="btn-next-territorio" class="btn-switcher">▶</button>
+            </div>
+            
+            <div class="user-actions">
+                <button id="btnTrocarDirigente" class="btn-secondary">Trocar dirigente</button>
+                <button id="btnSair" class="btn-secondary">Sair</button>
+            </div>
+        </div>
+
+        <!-- Cabeçalho do território -->
+        <div class="territorio-header">
+            <div class="territorio-info">
+                <h2 id="territorio-titulo">Carregando...</h2>
+                <button id="btn-ver-mapa" class="btn-mapa">🗺️ Ver Mapa</button>
+            </div>
+        </div>
+
+        <!-- Resumo -->
+        <div class="resumo-container">
+            <div class="resumo-card">
+                <span class="resumo-numero" id="resumo-total">0</span>
+                <span class="resumo-label">Total</span>
+            </div>
+            <div class="resumo-card">
+                <span class="resumo-numero" id="resumo-fechadas">0</span>
+                <span class="resumo-label">Fechadas</span>
+            </div>
+            <div class="resumo-card">
+                <span class="resumo-numero" id="resumo-aberto">0</span>
+                <span class="resumo-label">Em aberto</span>
+            </div>
+            <div class="resumo-card">
+                <span class="resumo-numero" id="resumo-nao-iniciadas">0</span>
+                <span class="resumo-label">Não iniciadas</span>
+            </div>
+        </div>
+
+        <!-- Quadras -->
+        <div class="quadras-section">
+            <h3>Quadras</h3>
+            <div id="quadras-container"></div>
+        </div>
+
+        <!-- Alerta de pendências offline -->
+        <div id="alert-pendencias" class="alert-pendencias hidden">
+            ⚠️ Você tem <span id="num-pendencias">0</span> atualizações pendentes para enviar
+        </div>
+    </div>
+</div>
+
+<!-- MODAL DE EDIÇÃO -->
+<div id="modal-quadra" class="modal" style="display:none;">
+    <div class="modal-content">
+        <h3 id="modal-titulo">Editar Quadra</h3>
+
+        <label>Status:</label>
+        <select id="quadra-status" class="status-select">
+            <option value="nao_iniciada">Não iniciada</option>
+            <option value="em_aberto">Em aberto</option>
+            <option value="fechada">Fechada</option>
+        </select>
+
+        <div id="opcoes-fechada" class="opcoes-fechada hidden">
+            <label>Você finalizou TODAS as casas desta quadra?</label>
+            <div class="opcoes-botoes">
+                <button id="btn-finalizar-tudo" class="btn-opcao">✅ Sim, finalizei tudo</button>
+                <button id="btn-ainda-faltam" class="btn-opcao">🏠 Não, ainda faltam casas</button>
+            </div>
+        </div>
+
+        <div id="campo-onde-parou" class="campo-onde-parou hidden">
+            <label>Onde parou: <span class="obrigatorio">*</span></label>
+            <input type="text" id="quadra-onde-parou" placeholder="Ex: Casa 45, após o mercado">
+        </div>
+
+        <label>Observações (opcional):</label>
+        <textarea id="quadra-observacoes" placeholder="Alguma observação sobre esta quadra?"></textarea>
+
+        <div class="modal-buttons">
+            <button id="btn-salvar-quadra">Salvar</button>
+            <button class="cancelar" id="btn-cancelar-modal">Cancelar</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL TROCA DE DIRIGENTE -->
+<div id="modal-troca" class="modal" style="display:none;">
+    <div class="modal-content">
+        <h3>Solicitar troca de dirigente</h3>
+
+        <!-- SELETOR DE TERRITÓRIO (se tiver 2+) -->
+        <div id="selecao-territorio-troca" class="hidden">
+            <label>Qual território deseja transferir?</label>
+            <select id="territorio-para-trocar" class="status-select">
+                <!-- Preenchido dinamicamente -->
+            </select>
+        </div>
+
+        <label>Selecione o novo dirigente:</label>
+        <select id="novo-dirigente" class="status-select">
+            <option>Carregando...</option>
+        </select>
+
+        <button id="btn-confirmar-troca">Confirmar troca</button>
+        <button class="cancelar" id="btn-cancelar-troca">Cancelar</button>
+    </div>
+</div>
+
+<!-- MODAL VER MAPA - Removido, agora abre em nova aba -->
+
+<!-- BOTÃO DE ENVIO DE DADOS (só aparece após login) -->
+<div id="rodape-sync" class="hidden">
+    <button id="btnSincronizar" aria-label="Enviar dados das quadras">
+        <span id="sync-btn-icon">📤</span>
+        <span id="sync-btn-text">Enviar dados das quadras</span>
+    </button>
+</div>
+
+<script src="sync.js"></script>
+<script src="script.js"></script>
+
+<!-- PWA Service Worker -->
+<script>
+// Registrar Service Worker para PWA
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/service-worker.js')
+            .then((registration) => {
+                console.log('✅ Service Worker registrado:', registration.scope);
+                
+                // Verificar atualizações
+                registration.addEventListener('updatefound', () => {
+                    const newWorker = registration.installing;
+                    newWorker.addEventListener('statechange', () => {
+                        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                            // Nova versão disponível
+                            if (confirm('Nova versão disponível! Atualizar agora?')) {
+                                newWorker.postMessage({ action: 'skipWaiting' });
+                                window.location.reload();
+                            }
+                        }
+                    });
+                });
+            })
+            .catch((error) => {
+                console.log('❌ Erro ao registrar Service Worker:', error);
+            });
+    });
+    
+    // Recarregar quando service worker for ativado
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+        window.location.reload();
+    });
+}
+
+// Prompt de instalação PWA
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    
+    // Mostrar banner de instalação após 5 segundos
+    setTimeout(() => {
+        if (deferredPrompt && !window.matchMedia('(display-mode: standalone)').matches) {
+            mostrarBannerInstalacao();
+        }
+    }, 5000);
+});
+
+function mostrarBannerInstalacao() {
+    const banner = document.createElement('div');
+    banner.style.cssText = `
+        position: fixed;
+        bottom: 80px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: linear-gradient(135deg, #1d6f42 0%, #3fa96e 100%);
+        color: white;
+        padding: 15px 25px;
+        border-radius: 50px;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        animation: slideUp 0.3s ease;
+        max-width: 90%;
+    `;
+    
+    banner.innerHTML = `
+        <span style="font-size: 14px; font-weight: 600;">📱 Instalar como aplicativo?</span>
+        <button id="btn-instalar-pwa" style="background: white; color: #1d6f42; border: none; padding: 8px 20px; border-radius: 20px; font-weight: 700; cursor: pointer;">Instalar</button>
+        <button id="btn-fechar-banner" style="background: transparent; color: white; border: none; font-size: 20px; cursor: pointer; padding: 5px;">✕</button>
+    `;
+    
+    document.body.appendChild(banner);
+    
+    document.getElementById('btn-instalar-pwa').addEventListener('click', async () => {
+        if (deferredPrompt) {
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+            console.log('Instalação PWA:', outcome);
+            deferredPrompt = null;
+            banner.remove();
+        }
+    });
+    
+    document.getElementById('btn-fechar-banner').addEventListener('click', () => {
+        banner.remove();
+    });
+}
+
+// Detectar se app foi instalado
+window.addEventListener('appinstalled', () => {
+    console.log('✅ PWA instalado com sucesso!');
+    deferredPrompt = null;
+});
+</script>
+
+</body>
+</html>
