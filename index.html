@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Designações - Ribeirão Claro</title>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- SEÇÃO DE LOGIN -->
+        <div id="loginSection" class="login-section">
+            <h2>Sistema de Designações</h2>
+            <p>Congregação Ribeirão Claro</p>
+            
+            <form id="loginForm" onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label for="loginEmail">Email</label>
+                    <input 
+                        type="email" 
+                        id="loginEmail" 
+                        class="form-control" 
+                        placeholder="Digite seu email"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="loginPassword">Senha</label>
+                    <input 
+                        type="password" 
+                        id="loginPassword" 
+                        class="form-control" 
+                        placeholder="Digite sua senha"
+                        required
+                    >
+                </div>
+
+                <button type="submit" class="btn btn-primary" id="loginBtn">
+                    Entrar
+                    <span class="spinner" id="loginSpinner"></span>
+                </button>
+            </form>
+        </div>
+
+        <!-- CONTEÚDO PRINCIPAL -->
+        <div id="mainContent" class="main-content">
+            <!-- Header -->
+            <div class="header">
+                <h1>Quadro de Designações Ribeirão Claro</h1>
+                <p class="header-subtitle">Sistema de Gestão de Reuniões</p>
+            </div>
+
+            <!-- Info do Usuário -->
+            <div class="user-info">
+                <div>
+                    <strong id="userName" style="font-size: 1.1rem;"></strong>
+                    <span id="userRole" style="margin-left: 1rem; color: var(--text-medium);"></span>
+                </div>
+                <div style="display: flex; gap: 0.5rem;">
+                    <button class="btn btn-secondary" onclick="openModalTrocarSenha()">Trocar Senha</button>
+                    <button class="btn btn-secondary" onclick="logout()">Sair</button>
+                </div>
+            </div>
+
+            <!-- Abas -->
+            <div id="tabsContainer" class="tabs"></div>
+
+            <!-- Conteúdo das Abas -->
+            <div id="contentContainer"></div>
+        </div>
+    </div>
+
+    <!-- MODAL PARA EDITAR GRUPO -->
+    <div id="modalGrupo" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modalGrupoTitle">Editar Grupo</h3>
+                <button class="close-modal" onclick="closeModalGrupo()">&times;</button>
+            </div>
+            
+            <form id="formGrupo" onsubmit="saveGrupo(event)">
+                <input type="hidden" id="grupoId">
+                
+                <div class="form-group">
+                    <label for="grupoNome">Nome do Grupo</label>
+                    <input 
+                        type="text" 
+                        id="grupoNome" 
+                        class="form-control" 
+                        placeholder="Ex: Grupo Salão do Reino"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="grupoAnciao">Ancião Responsável</label>
+                    <select id="grupoAnciao" class="form-control" required>
+                        <option value="">Selecionar...</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="grupoAssistente">Assistente</label>
+                    <select id="grupoAssistente" class="form-control" required>
+                        <option value="">Selecionar...</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="grupoMembros">Membros (separados por vírgula)</label>
+                    <textarea 
+                        id="grupoMembros" 
+                        class="form-control" 
+                        placeholder="Ex: Lincoln,Marcelo,Alex"
+                        rows="3"
+                    ></textarea>
+                </div>
+
+                <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                    <button type="submit" class="btn btn-success">Salvar</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeModalGrupo()">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL PARA ADICIONAR ANÚNCIO -->
+    <div id="modalAnuncio" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Adicionar Anúncio</h3>
+                <button class="close-modal" onclick="closeModalAnuncio()">&times;</button>
+            </div>
+            
+            <form id="formAnuncio" onsubmit="saveAnuncio(event)">
+                <div class="form-group">
+                    <label for="anuncioData">Data</label>
+                    <input 
+                        type="date" 
+                        id="anuncioData" 
+                        class="form-control"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="anuncioTipo">Tipo</label>
+                    <select id="anuncioTipo" class="form-control" required>
+                        <option value="Geral">Geral</option>
+                        <option value="Assembleia">Assembleia</option>
+                        <option value="Congresso">Congresso</option>
+                        <option value="Limpeza">Limpeza</option>
+                        <option value="Serviço de Campo">Serviço de Campo</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="anuncioTexto">Texto do Anúncio</label>
+                    <textarea 
+                        id="anuncioTexto" 
+                        class="form-control" 
+                        placeholder="Digite o texto do anúncio..."
+                        rows="4"
+                        required
+                    ></textarea>
+                </div>
+
+                <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                    <button type="submit" class="btn btn-success">Adicionar</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeModalAnuncio()">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL PARA ADICIONAR IRMÃO -->
+    <div id="modalIrmao" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Adicionar Irmão</h3>
+                <button class="close-modal" onclick="closeModalIrmao()">&times;</button>
+            </div>
+            
+            <form id="formIrmao" onsubmit="saveIrmao(event)">
+                <div class="form-group">
+                    <label for="irmaoNome">Nome Completo</label>
+                    <input 
+                        type="text" 
+                        id="irmaoNome" 
+                        class="form-control" 
+                        placeholder="Ex: João Silva"
+                        required
+                    >
+                </div>
+
+                <div style="margin-top: 1.5rem;">
+                    <label style="font-weight: 600; margin-bottom: 1rem; display: block;">Qualificações:</label>
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.75rem;">
+                        <div class="checkbox-group" style="padding: 0.5rem;">
+                            <input type="checkbox" id="irmao_dirigente">
+                            <label for="irmao_dirigente">Dirigente</label>
+                        </div>
+                        <div class="checkbox-group" style="padding: 0.5rem;">
+                            <input type="checkbox" id="irmao_mecanicas">
+                            <label for="irmao_mecanicas">Mecânicas</label>
+                        </div>
+                        <div class="checkbox-group" style="padding: 0.5rem;">
+                            <input type="checkbox" id="irmao_presidente">
+                            <label for="irmao_presidente">Presidente</label>
+                        </div>
+                        <div class="checkbox-group" style="padding: 0.5rem;">
+                            <input type="checkbox" id="irmao_leitor">
+                            <label for="irmao_leitor">Leitor</label>
+                        </div>
+                        <div class="checkbox-group" style="padding: 0.5rem;">
+                            <input type="checkbox" id="irmao_estudo">
+                            <label for="irmao_estudo">Estudo</label>
+                        </div>
+                        <div class="checkbox-group" style="padding: 0.5rem;">
+                            <input type="checkbox" id="irmao_discurso">
+                            <label for="irmao_discurso">Discurso</label>
+                        </div>
+                        <div class="checkbox-group" style="padding: 0.5rem;">
+                            <input type="checkbox" id="irmao_joias">
+                            <label for="irmao_joias">Joias</label>
+                        </div>
+                        <div class="checkbox-group" style="padding: 0.5rem;">
+                            <input type="checkbox" id="irmao_vida_crista">
+                            <label for="irmao_vida_crista">Vida Cristã</label>
+                        </div>
+                        <div class="checkbox-group" style="padding: 0.5rem;">
+                            <input type="checkbox" id="irmao_oracoes">
+                            <label for="irmao_oracoes">Orações</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                    <button type="submit" class="btn btn-success">Adicionar</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeModalIrmao()">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <!-- MODAL TROCAR SENHA -->
+    <div id="modalTrocarSenha" class="modal">
+        <div class="modal-content" style="max-width: 400px;">
+            <div class="modal-header">
+                <h3 class="modal-title">Trocar Senha</h3>
+                <button class="close-modal" onclick="closeModalTrocarSenha()">&times;</button>
+            </div>
+            
+            <form id="formTrocarSenha" onsubmit="trocarSenha(event)">
+                <div class="form-group">
+                    <label for="senhaAtual">Senha Atual</label>
+                    <input 
+                        type="password" 
+                        id="senhaAtual" 
+                        class="form-control" 
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="novaSenha">Nova Senha</label>
+                    <input 
+                        type="password" 
+                        id="novaSenha" 
+                        class="form-control" 
+                        required
+                        minlength="4"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="confirmarSenha">Confirmar Nova Senha</label>
+                    <input 
+                        type="password" 
+                        id="confirmarSenha" 
+                        class="form-control" 
+                        required
+                        minlength="4"
+                    >
+                </div>
+
+                <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                    <button type="submit" class="btn btn-success">Alterar Senha</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeModalTrocarSenha()">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="config.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
